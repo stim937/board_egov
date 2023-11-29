@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="BoardSpace">
+
+	<typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+	<typeAlias alias="boardVO" type="main.service.BoardVO" />
+
+	<!-- 성공시 null값이 넘어온다  -->
+	<insert id="boardDAO.insertBoard">
+        INSERT INTO board_item 
+            (unq, title, pass, name, content, hits, rdate)
+        VALUES (board_seq.nextval, #title#, #pass#, #name#, #content#, 0, sysdate)
+	</insert>
+
+	<select id="boardDAO.selectBoardList" resultClass="egovMap">
+		
+			SELECT b.* FROM (
+				SELECT rownum rn, a.* FROM (
+					SELECT  unq, 
+							title,
+							name,
+							hits,
+							to_char(rdate, 'yyyy-mm-dd') rdate
+					FROM 
+						BOARD_ITEM 
+					<isNotNull property="searchGubun">
+						<isNotNull property="searchText">
+							WHERE
+								$searchGubun$ like '%$searchText$%'
+						</isNotNull>
+					</isNotNull>
+					ORDER BY unq DESC) a ) b
+				WHERE
+					rn >= #startIndex# AND rn <![CDATA[<=]]> #endIndex#	
+			
+	</select>
+	
+	<select id="boardDAO.selectBoardTotal" resultClass="java.lang.Integer">
+		SELECT COUNT(*) total FROM board_item
+					<isNotNull property="searchGubun">
+						<isNotNull property="searchText">
+							WHERE
+								$searchGubun$ like '%$searchText$%'
+						</isNotNull>
+					</isNotNull>
+	</select>
+	
+	<select id="boardDAO.selectBoardDetail" resultClass="boardVO">
+		SELECT 
+			unq, title, pass, name, content, hits, to_char(rdate, 'yyyy-mm-dd') rdate
+		FROM 
+			board_item
+			WHERE unq = #unq#
+	</select>
+	
+	<update id="boardDAO.updateBoardHits">
+		UPDATE board_item SET hits = hits+1 WHERE unq=#unq#
+	</update>
+	
+	<update id="boardDAO.updateBoard">
+		UPDATE board_item 
+			SET 
+				title = #title#,
+				name = #name#,
+				content = #content#
+				
+			WHERE 
+				unq = #unq#
+	</update>
+	
+	<select id="boardDAO.selectBoardPass" resultClass="java.lang.Integer">
+		SELECT 
+			count(*)
+		FROM 
+			board_item
+			WHERE 
+				unq = #unq# AND pass = #pass#
+	</select>
+	
+	<delete id="boardDAO.deleteBoard">
+		DELETE 
+		FROM 
+			board_item
+			WHERE
+				unq = #unq# AND pass = #pass#
+	</delete>
+</sqlMap>

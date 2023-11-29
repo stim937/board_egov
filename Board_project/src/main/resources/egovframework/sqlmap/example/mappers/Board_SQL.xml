@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="main.service.impl.BoardMapper">
+
+	<insert id="insertBoard" parameterType="boardVO">
+        INSERT INTO board_item 
+        	(unq, title, pass, name, content, hits, rdate)
+    	VALUES 
+    		(board_seq.nextval, #{title}, #{pass}, #{name}, #{content}, 0, sysdate)
+    </insert>
+
+    <select id="selectBoardList" resultType="egovMap">
+        SELECT b.* FROM (
+            SELECT rownum rn, a.* FROM (
+                SELECT  unq, 
+                        title,
+                        name,
+                        hits,
+                        to_char(rdate, 'yyyy-mm-dd') rdate
+                FROM 
+                    BOARD_ITEM  
+                WHERE
+                	1=1    
+                <if test="searchGubun != null and searchText != null">
+               		AND ${searchGubun} LIKE '%' || #{searchText} || '%'
+                </if>
+                ORDER BY unq DESC) a ) b
+            WHERE
+                rn >= #{startIndex} AND rn <![CDATA[<=]]> #{endIndex}
+	</select>
+
+    <select id="selectBoardTotal" resultType="java.lang.Integer">
+        SELECT COUNT(*) total FROM board_item
+        WHERE 1=1
+        <if test="searchGubun != null and searchText != null">
+       		AND ${searchGubun} LIKE '%' || #{searchText} || '%'
+        </if>
+    </select>
+
+    <select id="selectBoardDetail" resultType="boardVO">
+        SELECT 
+            unq, title, pass, name, content, hits, to_char(rdate, 'yyyy-mm-dd') rdate
+        FROM 
+            board_item
+            WHERE unq = #{unq}
+    </select>
+
+    <update id="updateBoardHits">
+        UPDATE board_item SET hits = hits+1 WHERE unq=#{unq}
+    </update>
+
+    <update id="updateBoard">
+        UPDATE board_item 
+            SET 
+                title = #{title},
+                content = #{content}                
+            WHERE 
+                unq = #{unq}
+    </update>
+
+    <select id="selectBoardPass" resultType="java.lang.Integer">
+        SELECT 
+            count(*)
+        FROM 
+            board_item
+            WHERE 
+                unq = #{unq} AND pass = #{pass}
+    </select>
+
+    <delete id="deleteBoard">
+        DELETE 
+        FROM 
+            board_item
+            WHERE
+                unq = #{unq} AND pass = #{pass}
+    </delete>
+</mapper>

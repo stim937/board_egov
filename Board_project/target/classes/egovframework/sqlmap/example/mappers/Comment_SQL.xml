@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="main.service.impl.CommentMapper">
+	
+	<insert id="insertComment" parameterType="commentVO">
+        INSERT INTO board_comment 
+        	(comment_unq, board_unq, name, pass, content, rdate)
+    	VALUES 
+    		(comment_seq.nextval, #{boardUnq,jdbcType=NUMERIC}, #{name}, #{pass}, #{content}, sysdate)
+    </insert>
+	
+	<select id="selectComment" resultType="egovMap">
+		SELECT 
+			comment_unq, name, content, to_char(rdate, 'yyyy-mm-dd') rdate
+		FROM 
+			board_comment
+		WHERE board_unq = #{boardUnq,jdbcType=NUMERIC}
+		ORDER BY comment_unq				
+	</select>
+	
+	<select id="selectCommentPass" resultType="java.lang.Integer">
+       SELECT 
+           count(*)
+       FROM 
+           board_comment
+           WHERE 
+               comment_unq = #{commentUnq} AND pass = #{pass}
+	</select>
+	
+	<update id="updateComment">
+        UPDATE 
+        	board_comment 
+		SET 
+	        content = #{content}                
+		WHERE 
+            comment_unq = #{commentUnq}
+    </update>
+	
+    <delete id="deleteComment">
+        DELETE 
+        FROM 
+            board_comment
+            WHERE
+                comment_unq = #{commentUnq} AND pass = #{pass}
+    </delete>	
+</mapper>
